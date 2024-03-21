@@ -2,13 +2,8 @@ package com.example.email.job;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -20,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 public class EmailJob extends QuartzJobBean {
     @Autowired
     private JavaMailSender mailSender;
-   // @Value("${spring.mail.username}")
-    private String sender="";
+    @Autowired
+    private Scheduler scheduler;
+    private String sender = "";
+    JobExecutionContext jobExecutionContext;
 
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) {
@@ -46,9 +43,44 @@ public class EmailJob extends QuartzJobBean {
             messageHelper.setTo(toEmail);
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            scheduleRetryJob(jobExecutionContext);
         }
     }
+
+    private void scheduleRetryJob(JobExecutionContext jobExecutionContext) {
+        try {
+            JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
+            String to = jobDataMap.getString("to");
+            String subject = jobDataMap.getString("subject");
+            String product = jobDataMap.getString("product");
+            String price = jobDataMap.getString("price");
+            String creation = jobDataMap.getString("creation");
+
+            // Define the retry job
+            JobDetail retryJob = JobBuilder.newJob(EmailJob.class)
+                    .withIdentity("emailRetryJob_" + System.currentTimeMillis()) // Unique identity for the retry job
+                    .usingJobData("to", to)
+                    .usingJobData("subject", subject)
+                    .usingJobData("product", product)
+                    .usingJobData("price", price)
+                    .usingJobData("creation", creation)
+                    .build();
+
+            Trigger retryTrigger = TriggerBuilder.newTrigger()
+                    .withIdentity("emailRetryTrigger_" + System.currentTimeMillis())
+                    .startNow()
+                    .build();
+
+            scheduler.scheduleJob(retryJob, retryTrigger);
+
+        } catch (SchedulerException ex) {
+            ex.printStackTrace();
+
+        }
+
+    }
+
 
     private String HtmlContent(String product, String price, String creation) {
         String emailContent = "<!DOCTYPE html>"

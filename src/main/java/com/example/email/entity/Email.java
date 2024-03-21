@@ -21,5 +21,6 @@ public class Email {
     private String product;
     private String price;
     private String creation;
+    private boolean send;
 
 }
