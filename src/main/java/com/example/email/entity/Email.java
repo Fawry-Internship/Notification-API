@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +23,8 @@ public class Email {
     private String subject;
     private String product;
     private String price;
-    private String creation;
-    private boolean send;
+    private LocalDate creation;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 }

@@ -1,17 +1,19 @@
 package com.example.email.mapper;
 
-import com.example.email.dto.EmailRequest;
 import com.example.email.entity.Email;
+import com.example.email.model.EmailModel;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.factory.Mappers;
 
-public class EmailMapper {
-    public static Email requestToEntity(EmailRequest emailRequest) {
-        Email email = new Email();
-        email.setTo(emailRequest.getTo());
-        email.setFrom("");
-        email.setSubject(emailRequest.getSubject());
-        email.setProduct(emailRequest.getProduct());
-        email.setPrice(emailRequest.getPrice());
-        email.setCreation(emailRequest.getCreation());
-        return email;
-    }
+@Mapper(componentModel = "spring")
+public interface EmailMapper {
+      EmailMapper INSTANCE = Mappers.getMapper(EmailMapper.class);
+
+      @Mapping(target = "to", source = "to")
+      @Mapping(target = "from", expression = "java(\"esraamabrouk126@gmail.com\")")
+      Email modelToEntity(EmailModel emailModel);
+
+      EmailModel entityToModel(Email email);
 }
