@@ -72,7 +72,7 @@ public class EmailServiceImpl implements EmailService {
                 + "<div class='email-container'>"
                 + "<div class='header'><h2>Order Confirmation</h2></div>"
                 + "<div class='content'>"
-                + "<p>Dear Customer " + ",</p>"
+                + "<p>Hi Dear ! " + ",</p>"
                 + "<p>Created at: " + creation + "</p>"
                 + "<p>Order item: " + product + "</p>"
                 + "<p>Price: " + price + "</p>"
