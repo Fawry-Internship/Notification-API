@@ -10,6 +10,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,40 +24,39 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImpl implements EmailService {
-
 
     private final MailRepository mailRepo;
     private final JavaMailSender mailSender;
     private final EmailMapper emailMapper;
-    @Override
-    public ResponseEntity<String> sendEmail(EmailModel emailModel) throws RuntimeException, MessagingException {
 
-        Email email=emailMapper.modelToEntity(emailModel);
+    @Override
+    public ResponseEntity<String> sendEmail(EmailModel emailModel) {
+        log.info("You want to send this email: {}", emailModel);
+        Email email = emailMapper.modelToEntity(emailModel);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper messageHelper = new MimeMessageHelper(message, StandardCharsets.UTF_8.toString());
-        messageHelper.setSubject(email.getSubject());
-        String body = HtmlContent(email.getProduct(), email.getPrice(),emailModel.getCreation().toString());
-        messageHelper.setText(body, true);
-        messageHelper.setFrom("${spring.mail.username}");
-        messageHelper.setTo(email.getTo());
-
         try {
+            messageHelper.setSubject(email.getSubject());
+            String body = generateHtmlContent(email.getProduct(), email.getPrice(), emailModel.getCreation().toString());
+            messageHelper.setText(body, true);
+            messageHelper.setFrom("${spring.mail.username}");
+            messageHelper.setTo(email.getTo());
             mailSender.send(message);
             email.setStatus(Status.success);
             mailRepo.save(email);
-
-            return ResponseEntity.ok("Email send successfully!");
-        } catch (MailException e) {
+            log.info("Email sent successfully!");
+            return ResponseEntity.ok("Email sent successfully!");
+        } catch (MailException | MessagingException e) {
             email.setStatus(Status.faild);
             mailRepo.save(email);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Email failed to send");
-
+            log.error("Failed to send email: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send email");
         }
-
-
     }
-    private String HtmlContent(String product, String price, String creation) {
+
+    private String generateHtmlContent(String product, String price, String creation) {
         String emailContent = "<!DOCTYPE html>"
                 + "<html>"
                 + "<head>"
