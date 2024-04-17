@@ -8,10 +8,8 @@ import com.example.email.repository.MailRepository;
 import com.example.email.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
@@ -20,7 +18,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +54,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private String generateHtmlContent(String product, String price, String creation) {
+    private String generateHtmlContent(String productName, String price, String creation) {
         String emailContent = "<!DOCTYPE html>"
                 + "<html>"
                 + "<head>"
@@ -72,11 +70,11 @@ public class EmailServiceImpl implements EmailService {
                 + "<div class='email-container'>"
                 + "<div class='header'><h2>Order Confirmation</h2></div>"
                 + "<div class='content'>"
-                + "<p>Hi Dear ! " + ",</p>"
+                + "<p>Hi there,</p>"
                 + "<p>Created at: " + creation + "</p>"
-                + "<p>Order item: " + product + "</p>"
+                + "<p>Order item: " + productName + "</p>"
                 + "<p>Price: " + price + "</p>"
-                + "<p class='thank-you'>Thanks for your order!</p>"
+                + "<p class='thank-you'>Have A Nice Day ;-D!</p>"
                 + "</div>"
                 + "</div>"
                 + "</body>"
